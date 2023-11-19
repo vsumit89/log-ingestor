@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"logswift/internal/app/config"
 	"logswift/internal/db"
+	"logswift/internal/message_queue"
 	"logswift/internal/repository"
 
 	"logswift/internal/domain"
@@ -68,9 +69,20 @@ func (a *App) Start() error {
 		return err
 	}
 
+	mq := message_queue.NewMessageQueue()
+	err = mq.Connect(*AppCfg.MQCfg)
+	if err != nil {
+		return err
+	}
+
+	err = mq.DeclareQueue()
+	if err != nil {
+		return err
+	}
+
 	// logIngestorSvc is the service that will be used to write logs to the database
 	// we pass in the logWriteRepo to the service as it is a dependency
-	logIngestorSvc := domain.NewLogIngestorService(logWriteRepo, searchIndexSvc)
+	logIngestorSvc := domain.NewLogIngestorService(logWriteRepo, searchIndexSvc, mq)
 
 	// setting up the http router
 	// using go-chi as the router

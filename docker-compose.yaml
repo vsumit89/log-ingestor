@@ -5,10 +5,22 @@ services:
       context: ./server
       dockerfile: ./docker/Dockerfile.dev
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
+      - rabbitmq
     ports:
       - "3000:3000"
+    volumes:
+      - ./server:/app
+    networks:
+      - logswift
+
+  logswift-consumer:
+    build:
+      context: ./server
+      dockerfile: ./docker/Dockerfile.worker
+    depends_on:
+      - rabbitmq
+      - logswift-api
     volumes:
       - ./server:/app
     networks:
@@ -54,6 +66,25 @@ services:
       - ./volumes/meilidata:/meilidata
     environment:
       - MEILI_MASTER_KEY=password
+    networks:
+      - logswift
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitmquser
+      - RABBITMQ_DEFAULT_PASS=rabbitmqpassword
+    volumes:
+      - ./volumes/rabbitmq:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      # - "5000:5673" # Expose this port while running the producer and consumer services locally
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 15s
+      retries: 5
     networks:
       - logswift
 

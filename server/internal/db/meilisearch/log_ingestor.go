@@ -40,6 +40,31 @@ func (ms *MeiliSearch) Create(log dtos.LogEntry) error {
 	return err
 }
 
+func (ms *MeiliSearch) CreateBatch(logs []dtos.LogEntry) error {
+	formattedLogs := []interface{}{}
+	for _, log := range logs {
+		formattedLog := map[string]interface{}{
+			"id":                 getRandomID(),
+			"timestamp":          log.Timestamp.Unix(),
+			"message":            log.Message,
+			"level":              log.Level,
+			"resourceId":         log.ResourceID,
+			"traceId":            log.TraceID,
+			"spanId":             log.SpanID,
+			"commit":             log.Commit,
+			"metadata_parent_id": log.Metadata.ParentResourceID,
+		}
+		formattedLogs = append(formattedLogs, formattedLog)
+	}
+
+	_, err := ms.client.Index(ms.indexName).AddDocuments(formattedLogs, "id")
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
 func (ms *MeiliSearch) Search(query string, filter dtos.LogQueryFilters) (*dtos.LogQueryResponse, error) {
 	searchParams := &meilisearch.SearchRequest{
 		Query:  query,

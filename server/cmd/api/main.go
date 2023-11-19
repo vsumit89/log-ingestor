@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"logswift/internal/app"
 	"logswift/pkg/logger"
 	"os"
@@ -27,7 +26,6 @@ func main() {
 		log.Error("error unmarshalling config file", "error", err.Error())
 		return
 	}
-	fmt.Println(app.AppCfg.DB)
 	log.Info("config file read successfully")
 
 	appInstance := app.NewApp()

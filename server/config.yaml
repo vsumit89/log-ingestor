@@ -21,3 +21,11 @@ search_index:
   port: 7700
   index_name: logswift
   api_key: password
+
+
+messagequeue:
+  host: rabbitmq
+  username: rabbitmquser
+  password: rabbitmqpassword
+  port: 5672
+  name: logs

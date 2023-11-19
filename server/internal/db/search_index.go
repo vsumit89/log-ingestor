@@ -11,6 +11,7 @@ type ISearchIndex interface {
 	Disconnect() error
 	Search(query string, filter dtos.LogQueryFilters) (*dtos.LogQueryResponse, error)
 	Create(log dtos.LogEntry) error
+	CreateBatch(logs []dtos.LogEntry) error
 }
 
 func NewSearchIndex() ISearchIndex {

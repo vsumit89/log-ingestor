@@ -26,6 +26,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/rabbitmq/amqp091-go v1.9.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect

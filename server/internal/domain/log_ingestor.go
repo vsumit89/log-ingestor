@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"logswift/internal/db"
 	"logswift/internal/dtos"
+	"logswift/internal/message_queue"
 	"logswift/internal/models"
 	"logswift/internal/repository"
 	"logswift/pkg/logger"
@@ -33,17 +34,19 @@ type LogIngestorService struct {
 	flushInterval time.Duration
 	buffer        chan dtos.LogEntry
 	searchIndex   db.ISearchIndex
+	mq            message_queue.IMessageQueue
 }
 
 var recordCount int64
 
-func NewLogIngestorService(repo []repository.ILogWriterRepository, searchIndex db.ISearchIndex) ILogIngestorService {
+func NewLogIngestorService(repo []repository.ILogWriterRepository, searchIndex db.ISearchIndex, mq message_queue.IMessageQueue) ILogIngestorService {
 	svc := &LogIngestorService{
 		logger:        logger.GetInstance(),
 		logRepo:       repo,
 		flushInterval: FLUSH_INTERVAL * time.Second,
 		buffer:        make(chan dtos.LogEntry, MAX_BATCH_SIZE+MAX_BUFFER),
 		searchIndex:   searchIndex,
+		mq:            mq,
 	}
 
 	go svc.startFlushRoutine()
@@ -61,13 +64,20 @@ func (svc *LogIngestorService) IngestLog(logEntry dtos.LogEntry) {
 		svc.logger.Warn("Log buffer is full, consider increasing buffer size or handling overflow")
 	}
 
-	// non blocking indexing of the record in the search index
+	// non blocking call to publish the log entry to the message queue
 	go func() {
-		// index the record in the search index
-		err := svc.searchIndex.Create(logEntry)
+		body, err := json.Marshal(logEntry)
 		if err != nil {
-			svc.logger.Error("Error indexing record in search index", "error", err, "tag", "meilisearch")
+			svc.logger.Error("Error marshaling log entry", "error", err)
+			return
 		}
+
+		err = svc.mq.Publish(body)
+		if err != nil {
+			svc.logger.Error("Error publishing log entry to message queue", "error", err)
+			return
+		} // // index the record in the search index
+
 	}()
 }
 
