@@ -1,0 +1,61 @@
+version: "3.7"
+services:
+  logswift-api:
+    build:
+      context: ./server
+      dockerfile: ./docker/Dockerfile.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/app
+    networks:
+      - logswift
+
+  logswift-client:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./web:/app
+    environment:
+      - NEXT_PUBLIC_LOGSWIFT_API_URL=http://localhost:3000
+      - NEXT_TELEMETRY_DISABLED=1
+    networks:
+      - logswift
+
+  postgres:
+    image: postgres:14.2-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./volumes/postgresql:/var/lib/postgresql/data/
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test: 'pg_isready -U "postgres" -d "log_01"'
+      timeout: 2s
+    networks:
+      - logswift
+
+  meilisearch:
+    image: getmeili/meilisearch:v0.28.0
+    ports:
+      - "7700:7700"
+    volumes:
+      - ./volumes/meilidata:/meilidata
+    environment:
+      - MEILI_MASTER_KEY=password
+    networks:
+      - logswift
+
+networks:
+  logswift:

@@ -1,0 +1,23 @@
+server:
+  port: 3000
+
+db:
+  - host: postgres
+    username: postgres
+    password: postgres
+    port: 5432
+    dbname: log_01
+    ssl_mode: disable
+  - host: postgres
+    username: postgres
+    password: postgres
+    port: 5432
+    dbname: log_02
+    ssl_mode: disable
+
+
+search_index:
+  host: meilisearch
+  port: 7700
+  index_name: logswift
+  api_key: password
