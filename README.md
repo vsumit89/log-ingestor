@@ -79,7 +79,7 @@ If you want to make any change to the configuration, you can do so by changing t
 5. If the `logswift-api` and `logswift-consumer` services show `connection refused with rabbitmq`. Restart them using
    `docker-compose restart {service-name}`
 
-## Improvements (could not be done due to time constraints)
+## Roadmap
 - Ability to add custom MAX_SIZE_BUFFER and FLUSH_INTERVAL for postgres and meilisearch
 - Using Clickhouse instead of postgres for storing the logs. Clickhouse has better performance for batch insertion and better data compression.
 - Adding unit, integration tests for the server
@@ -87,3 +87,4 @@ If you want to make any change to the configuration, you can do so by changing t
 - Adding more worker instances for parallelising the ingestion into meilisearch
 - Using rabbitmq for flushing logs into postgres
   with the help of some worker instance
+- Add Natural language search too
